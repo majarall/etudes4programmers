@@ -90,28 +90,15 @@ ani = FuncAnimation(
     interval=500,  # milliseconds between frames
     blit=True
 )
-
+plt.tight_layout()
 plt.show()
 
 
-"""
-num_generations = 5
-for gen in range(num_generations):
-
-	# Convolve to get neighbor counts for all cells
-	neighbor_counts = convolve(A, kernel, mode='constant', cval=0)
 
 
-	mask_dead = neighbor_counts > 3
-	mask_life = neighbor_counts == 3
-	A[mask_dead] = 0
-	A[mask_life] = 1
+# TODOS next time:
 
+# 1. Fix the title issue when plotting, the problem apears to be that the first iteration 0 is overlapping with other iterations
+# 2. Add all the rules properly.
+# 3. validate that the game is working properly
 
-	# Step 4: Display as heatmap
-	plt.figure(figsize=(8,8))
-	plt.title(f"Iteration {gen+1}")
-	plt.imshow(A, cmap='hot', interpolation='nearest')
-	plt.colorbar(label='Value')
-	plt.show()
-"""
