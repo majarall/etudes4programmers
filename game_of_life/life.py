@@ -1,3 +1,13 @@
+import numpy as np 
+from scipy.ndimage import convolve
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+
+
+
+
+
+
 # Program to explorte game of life by Conway.
 # Estimated time 3 weeks. 
 
@@ -20,42 +30,66 @@
 # 1. Print 2d grid of the Flatland. Does the size matter here? 10x10 or 100x100?
 # Start by a numpy array 10x10
 
-import numpy as np 
-X, Y = 10, 10
-A = np.zeros((X,Y), dtype=int)
-print(A)
+
+def get_grid(x,y):
+	""" retunrs a square 2d array of size x*y"""
+
+	return np.zeros((x,y), dtype=int)
+
+x = y = 10
+grid = get_grid(x,y)
+print(grid)
 # 2. Randomly distribute a configuration of living cells. 
 # choose a number of living cells to begin with, change this number according to the behvior of LIFE. 
 initial_lives = 30
-positions = np.random.choice(A.size, initial_lives, replace=False)
-np.put(A, positions, 1)
+def initial_state(A):
+	"""Create random positions of living cells (1s), and distribute them to array A"""
+	positions = np.random.choice(A.size, initial_lives, replace=False)
+	np.put(A, positions, 1)
+	return A
+
+A = initial_state(grid)
 print(A)
 
 # Checks:
 # 1. If LIFE cell < 2 neigbors then cell = dead. If LIFE cell > 3 neighbors then cell = dead.
 # IF empty cell == 3 neighbors LIFE cell then LIFE cell
 
-#
-#		0	
-#	0	0	0		
-#		0
-#
-#
+
+def apply_rules(A):
+    """
+    Apply Conway's Game of Life rules to the grid:
+    1. Any live cell with fewer than two live neighbors dies (underpopulation)
+    2. Any live cell with two or three live neighbors lives on
+    3. Any live cell with more than three live neighbors dies (overpopulation)
+    4. Any dead cell with exactly three live neighbors becomes a live cell (reproduction)
+    
+    Args:
+        grid: 2D numpy array representing the current state
+        
+    Returns:
+        The updated grid after applying the rules
+    """
+    # 3x3 kernel with center zero (so it doesn't count the cell itself)
+    kernel = np.array([[1, 1, 1],
+                      [1, 0, 1],
+                      [1, 1, 1]])
+    
+    # Count neighbors for each cell
+    neighbor_counts = convolve(A, kernel, mode='constant', cval=0)
+    
+    # Create a copy of the grid to avoid modifying it during rule application
+    new_A = A.copy()
+    
+    # Apply rules
+    # Rule 1 & 3: Live cells with < 2 or > 3 neighbors die
+    
+    
+    # Rule 4: Dead cells with exactly 3 neighbors become alive
+    
+    return new_A
 
 
-
-from scipy.ndimage import convolve
-
-
-# 3x3 kernel with center zero (so it doesn't count the cell itself)
-kernel = np.array([[1, 1, 1],
-                   [1, 0, 1],
-                   [1, 1, 1]])
-
-
-
-import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
 
 #plt.imshow(np.zeros((10, 10)), cmap='hot', interpolation='nearest', vmin=0, vmax=1)
 
@@ -68,12 +102,8 @@ title = ax.set_title("Iteration 0")
 def update(frame):
     global A
     
-    # Your existing code for updating the grid
-    neighbor_counts = convolve(A, kernel, mode='constant', cval=0)
-    mask_dead = neighbor_counts > 3
-    mask_life = neighbor_counts == 3
-    A[mask_dead] = 0
-    A[mask_life] = 1
+    # Apply Game of Life rules to update the grid
+    A = apply_rules(A)
     
     # Update the image data instead of creating a new plot
     img.set_array(A)
@@ -100,5 +130,6 @@ plt.show()
 
 # 1. Fix the title issue when plotting, the problem apears to be that the first iteration 0 is overlapping with other iterations
 # 2. Add all the rules properly.
-# 3. validate that the game is working properly
+# 3. Refactor the code, make a function of the rules
+# 4. validate that the game is working properly
 
