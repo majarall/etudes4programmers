@@ -5,9 +5,6 @@ from matplotlib.animation import FuncAnimation
 
 
 
-
-
-
 # Program to explorte game of life by Conway.
 # Estimated time 3 weeks. 
 
@@ -36,20 +33,14 @@ def get_grid(x,y):
 
 	return np.zeros((x,y), dtype=int)
 
-x = y = 10
-grid = get_grid(x,y)
-print(grid)
 # 2. Randomly distribute a configuration of living cells. 
 # choose a number of living cells to begin with, change this number according to the behvior of LIFE. 
-initial_lives = 30
-def initial_state(A):
+def initial_state(A, initial_lives):
 	"""Create random positions of living cells (1s), and distribute them to array A"""
 	positions = np.random.choice(A.size, initial_lives, replace=False)
 	np.put(A, positions, 1)
 	return A
 
-A = initial_state(grid)
-print(A)
 
 # Checks:
 # 1. If LIFE cell < 2 neigbors then cell = dead. If LIFE cell > 3 neighbors then cell = dead.
@@ -65,7 +56,7 @@ def apply_rules(A):
     4. Any dead cell with exactly three live neighbors becomes a live cell (reproduction)
     
     Args:
-        grid: 2D numpy array representing the current state
+        A : 2D numpy array representing the current state
         
     Returns:
         The updated grid after applying the rules
@@ -83,16 +74,82 @@ def apply_rules(A):
     
     # Apply rules
     # Rule 1 & 3: Live cells with < 2 or > 3 neighbors die
-    
-    
+    live_cells = A == 1
+    over_population = neighbor_counts > 3
+    under_population = neighbor_counts < 2
+    mask_rule_1_and_3 = live_cells & (under_population | over_population)  
+    new_A[mask_rule_1_and_3] = 0
     # Rule 4: Dead cells with exactly 3 neighbors become alive
+    dead_cell = A == 0
+    reproduction = neighbor_counts == 3
+    mask_rule_4 = dead_cell & reproduction
+    new_A[mask_rule_4] = 1
     
     return new_A
 
+def enhanced_animation(initial_grid, num_generations=50, interval=200):
+    # Setup the figure and axes
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+    fig.suptitle("Conway's Game of Life", fontsize=16)
+    
+    # Main grid display
+    img = ax1.imshow(initial_grid, cmap='viridis', interpolation='nearest')
+    ax1.set_title("Grid")
+    ax1.grid(True, color='gray', linestyle='-', linewidth=0.5, alpha=0.3)
+    
+    # Stats tracking
+    generations = [0]
+    live_cells = [np.sum(initial_grid)]
+    line, = ax2.plot(generations, live_cells, 'r-')
+    ax2.set_xlim(0, num_generations)
+    ax2.set_ylim(0, initial_grid.size)
+    ax2.set_title("Population over time")
+    ax2.set_xlabel("Generation")
+    ax2.set_ylabel("Live cells")
+    ax2.grid(True)
+    
+    # Animation state
+    grid = initial_grid.copy()
+    
+    def update(frame):
+        nonlocal grid
+        # Update grid
+        grid = apply_rules(grid)
+        
+        # Update grid display
+        img.set_array(grid)
+        
+        # Update statistics
+        generations.append(frame + 1)
+        population = np.sum(grid)
+        live_cells.append(population)
+        line.set_data(generations, live_cells)
+        
+        # Update titles
+        ax1.set_title(f"Generation {frame + 1}")
+        
+        return [img, line]
+    
+    ani = FuncAnimation(
+        fig, 
+        update, 
+        frames=num_generations,
+        interval=interval,
+        blit=False
+    )
+    
+    plt.tight_layout()
+    plt.show()
+    return ani, fig
 
 
-#plt.imshow(np.zeros((10, 10)), cmap='hot', interpolation='nearest', vmin=0, vmax=1)
+x = y = 20
+initial_lives = 40
+grid = get_grid(x,y)
+initial_grid = initial_state(grid, initial_lives)  
+enhanced_animation(initial_grid)
 
+"""
 fig, ax = plt.subplots(figsize=(8, 8))
 img = ax.imshow(A, cmap='hot', interpolation='nearest')
 fig.colorbar(img, label='Value')  # Create colorbar AFTER creating the image
@@ -123,7 +180,7 @@ ani = FuncAnimation(
 plt.tight_layout()
 plt.show()
 
-
+"""
 
 
 # TODOS next time:
